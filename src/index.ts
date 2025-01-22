@@ -241,7 +241,7 @@ async function start() {
                                 replyText = processMessageEntities(replyMsg.message, replyMsg.entities);
                             }
                             messageText += replyText + '\n';
-                            messageText += `┈┈┈┈┈┈┈┈┈┈\n`;
+                            messageText += `┈┈┈┈┈┈┈┈┈┈\n\n`;
                         }
                     }
 
