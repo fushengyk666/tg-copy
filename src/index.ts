@@ -12,7 +12,11 @@ const apiHash = process.env.API_HASH!;
 const stringSession = new StringSession(process.env.STRING_SESSION || '');
 
 // Bot API
-const bot = new Telegraf(process.env.BOT_TOKEN!);
+const bot_list: Telegraf[] = []
+process.env.BOT_TOKEN_LIST?.split(',').forEach(token => {
+    console.log(token)
+    bot_list.push(new Telegraf(token))
+})
 const sourceChatId = process.env.SOURCE_CHAT_ID!;
 const targetChatId = process.env.TARGET_CHAT_ID!;
 
@@ -35,6 +39,7 @@ async function processQueue() {
     
     while (messageQueue.length > 0) {
         const message = messageQueue.shift()!;
+        const bot = bot_list[Math.floor(Math.random() * bot_list.length)];
         try {
             let result;
             switch (message.type) {
@@ -57,15 +62,14 @@ async function processQueue() {
             }
         } catch (error: any) {
             if (error.message.includes('Too Many Requests')) {
-                const waitTime = parseInt(error.message.match(/\d+/)[0] || '60');
                 console.log('速率限制错误:', {
                     error: error.message,
-                    waitTime: `${waitTime}秒`,
+                    waitTime: `5秒`,
                     description: error.description,
                     response: error.response
                 });
                 messageQueue.unshift(message);
-                await new Promise(resolve => setTimeout(resolve, waitTime * 1000));
+                await new Promise(resolve => setTimeout(resolve, 5 * 1000));
                 continue;
             }
             console.error('发送消息失败:', {
@@ -84,6 +88,7 @@ async function processQueue() {
         }
         
         await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log('发送时间:', new Date().toISOString());
     }
     
     isProcessing = false;
@@ -289,7 +294,9 @@ async function start() {
             }
         }, new NewMessage({}));
 
-        await bot.launch();
+        bot_list.forEach(async bot => {
+            await bot.launch();
+        });
         console.log('Bot 和客户端已完全启动，正在监听消息...');
     } catch (error) {
         console.error('启动时出错:', error);
@@ -301,10 +308,14 @@ start();
 
 // 优雅地处理退出
 process.once('SIGINT', () => {
-    bot.stop('SIGINT');
+    bot_list.forEach(bot => {
+        bot.stop('SIGINT');
+    });
     process.exit(0);
 });
 process.once('SIGTERM', () => {
-    bot.stop('SIGTERM');
+    bot_list.forEach(bot => {
+        bot.stop('SIGTERM');
+    });
     process.exit(0);
 }); 
