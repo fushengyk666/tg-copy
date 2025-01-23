@@ -88,7 +88,6 @@ async function processQueue() {
         }
         
         await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log('发送时间:', new Date().toISOString());
     }
     
     isProcessing = false;
