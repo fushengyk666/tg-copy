@@ -82,8 +82,7 @@ async function processQueue() {
                     stack: error.stack
                 },
                 content: message.type === 'text' ? 
-                    message.content.substring(0, 100) + '...' : 
-                    '媒体内容'
+                    message.content : '媒体内容'
             });
         }
         
